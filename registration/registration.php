@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $email = trim($_POST['email']);
   $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash password for security
   $phone = trim($_POST['phone']);
-  $role = trim($_POST['role']);
+  $role = 'User'; // Automatically set role to "User"
 
   // Check for empty fields
   if (empty($name) || empty($username) || empty($email) || empty($_POST['password']) || empty($phone)) {
@@ -91,16 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="input-area">
           <input type="text" name="phone" placeholder="Phone Number" required>
           <i class="icon fas fa-phone"></i>
-        </div>
-      </div>
-      <!-- Role Dropdown -->
-      <div class="field role">
-        <div class="input-area">
-          <select name="role" required>
-            <option value="User">Normal User</option>
-            <option value="Contributor">Contributor</option>
-          </select>
-          <i class="icon fas fa-users"></i>
         </div>
       </div>
       <input type="submit" value="Register">

@@ -162,14 +162,13 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Guest';
                 </div>
             </li>
             <li><a href="../AdminModule/admin-report.php">Admin Report</a></li>
-            
+            <li>
+            <form action="../include/logout.php" method="POST" style="margin: 0;">
+                <button class="logout-btn" type="submit">Logout</button>
+            </form>
+        </li>
 
-        <!-- Contributor Navbar -->
-        <?php } elseif ($user_role === "Contributor") { ?>
-            <li><a href="../homepage/contributor-homepage.php">Home</a></li>
-            <li><a href="../ContributorModule/manage-item.php">Manage Item</a></li>
-
-        <!-- Normal User Navbar -->
+            <!-- Normal User Navbar -->
         <?php } elseif ($user_role === "User") { ?>
             <li><a href="../homepage/user-homepage.php">Home</a></li>
             <li class="dropdown">
@@ -178,18 +177,17 @@ $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Guest';
                     <a href="../UserModule/list-lost-item.php">List Item</a>
                     <a href="../UserModule/requested-item.php">Requested Item</a>
                 </div>
+
+            </li>
+            <li>
+                <form action="../include/logout.php" method="POST" style="margin: 0;">
+                    <button class="logout-btn" type="submit">Logout</button>
+                </form>
             </li>
 
         <?php } else { ?>
-            <li><a href="../login/login.php">Login</a></li>
+            <li><a href="../login/login-registration.php">Login</a></li>
         <?php } ?>
-
-        <li><a href="../ManageProfile/manage-user.php">Manage Profile</a></li>
-        <li>
-            <form action="../include/logout.php" method="POST" style="margin: 0;">
-                <button class="logout-btn" type="submit">Logout</button>
-            </form>
-        </li>
     </ul>
 </nav>
 

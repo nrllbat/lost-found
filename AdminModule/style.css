@@ -334,15 +334,6 @@ img {
     cursor: pointer;
 }
 
-.view-btn {
-    background: #007bff;
-    color: white;
-}
-
-.view-btn:hover {
-    background: #0056b3;
-}
-
 .edit-btn {
     background: #4caf50;
     color: white;
@@ -509,4 +500,5 @@ img {
     color: white;
     background-color: #333;
 }
+
 

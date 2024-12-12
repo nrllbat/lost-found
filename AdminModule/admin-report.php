@@ -18,8 +18,8 @@ $officeCollectionData = $conn->query("
 $contributorData = $conn->query("
     SELECT u.name AS contributor_name, COUNT(mi.id) AS count
     FROM missing_items mi
-    INNER JOIN users u ON mi.Contributor_id = u.id
-    GROUP BY mi.Contributor_id
+    INNER JOIN users u ON mi.admin_id = u.id
+    GROUP BY mi.admin_id
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Status Distribution of Missing Items

@@ -1,10 +1,6 @@
 <?php
 
 include '../conn.php';
-// Fetch contributors for the filter dropdown
-$contributorStmt = $conn->prepare("SELECT id, name FROM users WHERE role = 'Contributor'");
-$contributorStmt->execute();
-$contributorResult = $contributorStmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -16,6 +12,50 @@ $contributorResult = $contributorStmt->get_result();
     <title>Manage Missing Items</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        #addItemButton {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #addItemButton:hover {
+            background-color: #218838;
+        }
+
+        #resetButton {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #resetButton:hover {
+            background-color: #c82333;
+        }
+
+        .filter-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,28 +66,17 @@ $contributorResult = $contributorStmt->get_result();
 
         <!-- Search and Filter Section -->
         <div class="filter-section">
-            <input type="text" id="searchInput" placeholder="Search by item name...">
-
-            <select id="statusFilter">
-                <option value="">Filter by Status</option>
-                <option value="Missing">Missing</option>
-                <option value="Pending">Pending</option>
-                <option value="Found">Found</option>
-            </select>
-
-            <select id="contributorFilter">
-                <option value="">Filter by Contributor</option>
-                <?php
-                $contributorStmt = $conn->prepare("SELECT id, name FROM users WHERE role = 'Contributor'");
-                $contributorStmt->execute();
-                $contributorResult = $contributorStmt->get_result();
-                while ($contributorRow = $contributorResult->fetch_assoc()) {
-                    echo "<option value='" . htmlspecialchars($contributorRow['name']) . "'>" . htmlspecialchars($contributorRow['name']) . "</option>";
-                }
-                ?>
-            </select>
-
-            <button id="resetButton">Reset</button>
+            <button id="addItemButton" onclick="openModal('addModal')">Add Item</button>
+            <div class="filter-controls">
+                <input type="text" id="searchInput" placeholder="Search by item name...">
+                <select id="statusFilter">
+                    <option value="">Filter by Status</option>
+                    <option value="Missing">Missing</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Found">Found</option>
+                </select>
+                <button id="resetButton">Reset</button>
+            </div>
         </div>
 
         <table>
@@ -56,34 +85,13 @@ $contributorResult = $contributorStmt->get_result();
                     <th>Picture</th>
                     <th>Name</th>
                     <th>Office Collection Centre</th>
-                    <th>Contributor Picture</th>
-                    <th>Contributor Name</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="itemTableBody">
                 <?php
-                $stmt = $conn->prepare("
-                    SELECT 
-                        mi.id, 
-                        mi.name AS item_name, 
-                        mi.picture AS item_picture, 
-                        mi.OfficeCollectionCentre, 
-                        mi.status,
-                        mi.created,
-                        mi.Contributor_id, 
-                        u.name AS contributor_name, 
-                        u.picture AS contributor_picture 
-                    FROM 
-                        missing_items mi
-                    INNER JOIN 
-                        users u 
-                    ON 
-                        mi.Contributor_id = u.id
-                    WHERE 
-                        u.role = 'Contributor'
-                ");
+                $stmt = $conn->prepare("SELECT id, name AS item_name, picture AS item_picture, OfficeCollectionCentre, status FROM missing_items");
                 $stmt->execute();
                 $result = $stmt->get_result();
 
@@ -92,11 +100,8 @@ $contributorResult = $contributorStmt->get_result();
                             <td data-label='Picture'><img src='data:image/jpeg;base64," . base64_encode($row['item_picture']) . "' alt='Item Image'></td>
                             <td data-label='Name' class='item-name'>" . htmlspecialchars($row['item_name']) . "</td>
                             <td data-label='Office Collection Centre'>" . htmlspecialchars($row['OfficeCollectionCentre']) . "</td>
-                            <td data-label='Contributor Picture'><img src='data:image/jpeg;base64," . base64_encode($row['contributor_picture']) . "' alt='Contributor Image'></td>
-                            <td data-label='Contributor Name' class='contributor-name'>" . htmlspecialchars($row['contributor_name']) . "</td>
                             <td data-label='Status' class='status'>" . htmlspecialchars($row['status']) . "</td>
                             <td data-label='Actions'>
-                                <button class='view-btn btn' onclick=\"viewItem(" . $row['id'] . ")\">View</button>
                                 <button class='edit-btn btn' onclick=\"openEditModal(" . $row['id'] . ")\">Edit</button>
                                 <button class='delete-btn btn' onclick=\"deleteItem(" . $row['id'] . ")\">Delete</button>
                             </td>
@@ -122,13 +127,8 @@ $contributorResult = $contributorStmt->get_result();
                             <h3>Item Picture</h3>
                             <img id="viewItemPicture" alt="Item Picture" class="modal-picture">
                         </div>
-                        <div class="column">
-                            <h3>Contributor Picture</h3>
-                            <img id="viewContributorPicture" alt="Contributor Picture" class="modal-picture">
-                        </div>
                     </div>
                     <hr>
-                    <p><strong>Contributor Name:</strong> <span id="viewContributorName">Loading...</span></p>
                     <p><strong>Status:</strong> <span id="viewStatus">Loading...</span></p>
                     <p><strong>Created On:</strong> <span id="viewCreated">Loading...</span></p>
                     <p><strong>Office Collection Centre:</strong> <span id="viewOffice">Loading...</span></p>
@@ -167,6 +167,36 @@ $contributorResult = $contributorStmt->get_result();
 
                     <button type="submit" class="save-btn btn">Save Changes</button>
                     <button type="button" class="close-btn btn" onclick="closeModal('editModal')">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Modal -->
+        <div class="modal" id="addModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add Item</h2>
+                    <button class="close-btn" onclick="closeModal('addModal')">×</button>
+                </div>
+                <form action="add-item.php" method="POST" enctype="multipart/form-data">
+                    <label for="name">Item Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter item name" required>
+
+                    <label for="picture">Upload Picture</label>
+                    <input type="file" id="picture" name="picture" accept="image/*" required>
+
+                    <label for="office">Office Collection Centre</label>
+                    <select id="office" name="OfficeCollectionCentre" required>
+                        <option value="" disabled selected>Select Office Collection Centre</option>
+                        <option value="Centre A">Centre A</option>
+                        <option value="Centre B">Centre B</option>
+                        <option value="Centre C">Centre C</option>
+                    </select>
+
+                    <div class="modal-actions">
+                        <button type="submit" class="save-btn">Add Item</button>
+                        <button type="button" class="close-btn" onclick="closeModal('addModal')">Cancel</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -217,19 +247,16 @@ $contributorResult = $contributorStmt->get_result();
         function filterAndPaginateTable() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-            const contributorFilter = document.getElementById('contributorFilter').value.toLowerCase();
 
             const rows = document.querySelectorAll('#itemTableBody tr');
             const filteredRows = Array.from(rows).filter(row => {
                 const itemName = row.querySelector('.item-name').textContent.toLowerCase();
                 const status = row.querySelector('.status').textContent.toLowerCase();
-                const contributorName = row.querySelector('.contributor-name').textContent.toLowerCase();
 
                 const matchesSearch = itemName.includes(searchInput);
                 const matchesStatus = !statusFilter || status.includes(statusFilter);
-                const matchesContributor = !contributorFilter || contributorName.includes(contributorFilter);
 
-                return matchesSearch && matchesStatus && matchesContributor;
+                return matchesSearch && matchesStatus;
             });
 
             currentPage = 1; // Reset to the first page
@@ -242,17 +269,23 @@ $contributorResult = $contributorStmt->get_result();
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
-            document.getElementById('contributorFilter').value = '';
             filterAndPaginateTable();
         }
 
         document.getElementById('searchInput').addEventListener('input', filterAndPaginateTable);
         document.getElementById('statusFilter').addEventListener('change', filterAndPaginateTable);
-        document.getElementById('contributorFilter').addEventListener('change', filterAndPaginateTable);
         document.getElementById('resetButton').addEventListener('click', resetFilters);
 
         // Initial call
         filterAndPaginateTable();
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
     </script>
 
     <script src="../include/idle-logout.js"></script>

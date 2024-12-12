@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status= 'missing';
 
     // Prepare the SQL statement
-    $stmt = $conn->prepare("INSERT INTO missing_items (name, OfficeCollectionCentre, picture,status, Contributor_id, created) VALUES (?, ?, ?,?, ?, NOW())");
+    $stmt = $conn->prepare("INSERT INTO missing_items (name, OfficeCollectionCentre, picture,status, admin_id, created) VALUES (?, ?, ?,?, ?, NOW())");
 
     if ($stmt === false) {
         die("Error preparing statement: " . $conn->error);
